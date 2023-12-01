@@ -55,6 +55,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
     }
 
     // Popup
+    // TODO : doesn't work
     if (popup) {
         onclick = ({ object }) => {
             if (object === undefined) return;
@@ -84,6 +85,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         getColor: get_color,
         opacity: opacity,
         pickable: popup,
+        autoHighlight: false,
     });
     return { layer: layer, scales: scales };
 }
