@@ -3,7 +3,7 @@ import { guidGenerator } from "./utils";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_lines(data, options = {}, map, popup_obj = undefined) {
+export function layer_lines(data, options = {}, map) {
     let {
         x_col0 = "lon0",
         y_col0 = "lat0",
@@ -17,6 +17,9 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         popup = false,
     } = options;
     let scales = [];
+    let popup_obj = map.popup;
+
+    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
 
     // Width column
     let get_width, width_scale;
@@ -89,5 +92,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         autoHighlight: false,
     });
 
-    return { layer: layer, scales: scales };
+    layer.lifemap_leaflet_id = id;
+    layer.lifemap_leaflet_scales = scales;
+    return layer;
 }

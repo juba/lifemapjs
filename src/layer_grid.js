@@ -2,7 +2,7 @@ import { GridLayer } from "@deck.gl/aggregation-layers";
 import { guidGenerator } from "./utils";
 
 export function layer_grid(data, options = {}) {
-    const { x_col = "lon", y_col = "lat", cell_size = 200 } = options;
+    let { id = undefined, x_col = "lon", y_col = "lat", cell_size = 200 } = options;
 
     const layer = new GridLayer({
         data: data,
@@ -15,5 +15,6 @@ export function layer_grid(data, options = {}) {
         opacity: 0.5,
     });
 
-    return { layer: layer, scales: [] };
+    layer.lifemap_leaflet_id = id;
+    return layer;
 }

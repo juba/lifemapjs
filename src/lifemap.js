@@ -15,13 +15,13 @@ import "../node_modules/leaflet/dist/leaflet.css";
 import "../css/lifemap-leaflet.css";
 
 // Create layer from layer definition object
-function create_layer(layer_def, map = undefined, popup = undefined) {
+function create_layer(layer_def, map = undefined) {
     layer_def.data = d3.filter(layer_def.data, (d) => d["taxid"] != 0);
     switch (layer_def.layer) {
         case "points":
-            return layer_scatter(layer_def.data, layer_def.options ?? {}, map, popup);
+            return layer_scatter(layer_def.data, layer_def.options ?? {}, map);
         case "lines":
-            return layer_lines(layer_def.data, layer_def.options ?? {}, map, popup);
+            return layer_lines(layer_def.data, layer_def.options ?? {}, map);
         case "heatmap":
             return layer_heatmap(layer_def.data, layer_def.options ?? {});
         case "grid":
@@ -34,6 +34,12 @@ function create_layer(layer_def, map = undefined, popup = undefined) {
     }
 }
 
+function convert_layers(layers_list, map) {
+    // Convert layer definitions to layers
+    layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
+    return layers_list.map((l) => create_layer(l, map));
+}
+
 // Main function
 export function lifemap(el, layers_list, options = {}) {
     const {
@@ -44,49 +50,73 @@ export function lifemap(el, layers_list, options = {}) {
 
     // Base Leaflet layer
     let map = layer_lifemap(el, { zoom: zoom });
-    let popup = L.popup({ closeOnClick: false });
+    // Popup object
+    map.popup = L.popup({ closeOnClick: false });
+    // Legend control
+    map.legend = L.control({ position: legend_position });
+    // Current scales
+    map.scales = undefined;
 
-    // Convert layer definitions to layers
-    layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
-    layers_list = layers_list.map((l) => create_layer(l, map, popup));
-    let layers = layers_list.map((l) => l.layer);
-    let scales = layers_list.map((l) => l.scales).flat();
-
-    // Create deck.gl layers
-    const deckLayer = new LeafletLayer({
-        views: [
-            new MapView({
-                repeat: true,
-            }),
-        ],
-        layers: layers,
-    });
-    map.addLayer(deckLayer);
+    // Create deck.gl layer
+    const deck_layer = new LeafletLayer({ layers: [] });
+    map.addLayer(deck_layer);
 
     // Create legend from scales
-    if (scales.length > 0) {
-        // Remove duplicated scales
-        const unique_scales = {};
-        scales.forEach((obj) => {
-            const key = JSON.stringify(obj);
-            unique_scales[key] = obj;
-        });
+    function update_legend(scales) {
+        if (scales.length == 0) {
+            map.legend.remove();
+            return;
+        }
 
-        // Create Legend control
-        let legend = L.control({ position: legend_position });
-        legend.onAdd = (map) => {
+        map.legend.onAdd = (map) => {
             let div_legend = document.createElement("div");
             div_legend.className = "lifemap-legend";
             if (legend_width) {
                 div_legend.style.width = legend_width;
             }
             // Add legends
-            for (let scale of Object.values(unique_scales)) {
+            for (let scale of Object.values(scales)) {
                 if (legend_width) scale.width = legend_width;
                 div_legend.append(Plot.legend(scale));
             }
             return div_legend;
         };
-        legend.addTo(map);
+
+        map.legend.addTo(map);
     }
+
+    // Update scales from layers
+    function update_scales(layers) {
+        let scales = layers
+            .filter((d) => d.lifemap_leaflet_scales)
+            .map((d) => d.lifemap_leaflet_scales)
+            .flat();
+        // Remove duplicated scales
+        let unique_scales = {};
+        scales.forEach((obj) => {
+            const key = JSON.stringify(obj);
+            unique_scales[key] = obj;
+        });
+        unique_scales = Object.values(unique_scales);
+
+        if (map.scales != JSON.stringify(unique_scales)) {
+            update_legend(unique_scales);
+            map.scales = JSON.stringify(unique_scales);
+        }
+    }
+
+    // Update layers from layers definition list
+    function update_layers(layers_list) {
+        let layers = convert_layers(layers_list, map);
+        deck_layer.setProps({ layers: layers });
+        update_scales(layers);
+    }
+
+    map.update = function (layers_list) {
+        update_layers(layers_list);
+    };
+
+    map.update(layers_list);
+
+    return map;
 }

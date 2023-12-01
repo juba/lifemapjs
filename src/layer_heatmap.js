@@ -2,7 +2,8 @@ import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { guidGenerator } from "./utils";
 
 export function layer_heatmap(data, options = {}) {
-    const {
+    let {
+        id = undefined,
         x_col = "lon",
         y_col = "lat",
         radius = 30,
@@ -12,9 +13,11 @@ export function layer_heatmap(data, options = {}) {
         color_range = undefined,
     } = options;
 
+    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
+
     const layer = new HeatmapLayer({
         data: data,
-        id: "heatmap-layer-" + guidGenerator(),
+        id: id,
         pickable: false,
         getPosition: (d) => [d[x_col], d[y_col]],
         getWeight: 1,
@@ -32,5 +35,6 @@ export function layer_heatmap(data, options = {}) {
         ],
     });
 
-    return { layer: layer, scales: [] };
+    layer.lifemap_leaflet_id = id;
+    return layer;
 }

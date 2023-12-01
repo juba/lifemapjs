@@ -4,8 +4,9 @@ import { guidGenerator } from "./utils";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
+export function layer_scatter(data, options = {}, map) {
     let {
+        id = undefined,
         x_col = "lon",
         y_col = "lat",
         radius = undefined,
@@ -17,6 +18,9 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
         popup = false,
     } = options;
     let scales = [];
+    let popup_obj = map.popup;
+
+    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
 
     // Radius column
     let get_radius, radius_scale;
@@ -99,7 +103,7 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
 
     // Layer definition
     const layer = new ScatterplotLayer({
-        id: "scatter-layer-" + guidGenerator(),
+        id: id,
         data: data,
         radiusUnits: "pixels",
         radiusScale: radius_scale,
@@ -111,7 +115,15 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
         pickable: popup,
         autoHighlight: false,
         onClick: popup ? onclick : undefined,
+        updateTriggers: {
+            getRadius: radius_col,
+            radiusScale: radius_scale,
+            getFillColor: get_fill,
+            opacity: opacity,
+        },
     });
 
-    return { layer: layer, scales: scales };
+    layer.lifemap_leaflet_id = id;
+    layer.lifemap_leaflet_scales = scales;
+    return layer;
 }
