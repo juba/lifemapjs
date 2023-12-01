@@ -1,7 +1,4 @@
 import { MapView } from "@deck.gl/core";
-import * as L from "leaflet";
-import * as Plot from "@observablehq/plot";
-
 import { LeafletLayer } from "deck.gl-leaflet";
 import { layer_lifemap } from "./layer_lifemap";
 import { layer_heatmap } from "./layer_heatmap";
@@ -9,7 +6,10 @@ import { layer_scatter } from "./layer_scatter";
 import { layer_grid } from "./layer_grid";
 import { layer_screengrid } from "./layer_screen_grid";
 import { layer_lines } from "./layer_lines";
+
+import * as L from "leaflet";
 import * as d3 from "d3";
+import * as Plot from "@observablehq/plot";
 
 import "../node_modules/leaflet/dist/leaflet.css";
 import "../css/lifemap-leaflet.css";
