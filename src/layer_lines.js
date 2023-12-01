@@ -18,7 +18,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
     } = options;
     let scales = [];
 
-    // width
+    // Width column
     let get_width, width_scale;
     if (width_col !== undefined) {
         const max_value = d3.max(data, (d) => Number(d[width_col]));
@@ -30,7 +30,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         width_scale = width ?? 4;
     }
 
-    // color
+    // Color column
     let get_color;
     if (color_col !== undefined) {
         const max_value = d3.max(data, (d) => Number(d[color_col]));
@@ -73,6 +73,7 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         };
     }
 
+    // Layer definition
     const layer = new LineLayer({
         id: "line-layer-" + guidGenerator(),
         data: data,
@@ -87,5 +88,6 @@ export function layer_lines(data, options = {}, map, popup_obj = undefined) {
         pickable: popup,
         autoHighlight: false,
     });
+
     return { layer: layer, scales: scales };
 }

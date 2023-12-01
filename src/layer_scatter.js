@@ -1,5 +1,6 @@
 import { ScatterplotLayer } from "@deck.gl/layers";
 import { guidGenerator } from "./utils";
+
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
@@ -17,7 +18,7 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
     } = options;
     let scales = [];
 
-    // radius
+    // Radius column
     let get_radius, radius_scale;
     if (radius_col !== undefined) {
         const max_value = d3.max(data, (d) => d[radius_col]);
@@ -29,15 +30,17 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
         radius_scale = radius ?? 4;
     }
 
-    // fill color
+    // Fill color column
     let get_fill, scale, scale_fn;
     if (fill_col !== undefined) {
+        // Determine if scale is categorical or lineat
         if (fill_col_cat === undefined) {
             fill_col_cat = !(
                 ["number", "bigint"].includes(typeof data[0][fill_col]) &
                 ([...new Set(data.map((d) => d[fill_col]))].length > 10)
             );
         }
+        // Linear color scale
         if (!fill_col_cat) {
             const max_value = d3.max(data, (d) => Number(d[fill_col]));
             const min_value = d3.min(data, (d) => Number(d[fill_col]));
@@ -52,7 +55,9 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
                 label: fill_col,
             };
             scale_fn = (d) => Plot.scale(scale).apply(Number(d[fill_col]));
-        } else {
+        }
+        // Categorical color scale
+        else {
             scheme = scheme ?? "Tableau10";
             const domain = [...new Set(data.map((d) => d[fill_col]))];
             scale = {
@@ -68,7 +73,9 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
             const col = d3.color(scale_fn(d)).rgb();
             return [col["r"], col["g"], col["b"]];
         };
-    } else {
+    }
+    // Else : constant color
+    else {
         get_fill = [200, 0, 0];
     }
 
@@ -89,6 +96,8 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
             map.openPopup(popup_obj);
         };
     }
+
+    // Layer definition
     const layer = new ScatterplotLayer({
         id: "scatter-layer-" + guidGenerator(),
         data: data,
