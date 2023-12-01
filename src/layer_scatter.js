@@ -30,7 +30,7 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
     }
 
     // fill color
-    let get_fill, scale;
+    let get_fill, scale, scale_fn;
     if (fill_col !== undefined) {
         if (fill_col_cat === undefined) {
             fill_col_cat = !(
@@ -51,6 +51,7 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
                 className: "lifemap-leaflet-lin-legend",
                 label: fill_col,
             };
+            scale_fn = (d) => Plot.scale(scale).apply(Number(d[fill_col]));
         } else {
             scheme = scheme ?? "Tableau10";
             const domain = [...new Set(data.map((d) => d[fill_col]))];
@@ -60,10 +61,11 @@ export function layer_scatter(data, options = {}, map, popup_obj = undefined) {
                 className: "lifemap-leaflet-cat-legend",
                 label: fill_col,
             };
+            scale_fn = (d) => Plot.scale(scale).apply(d[fill_col]);
         }
         scales.push(scale);
         get_fill = (d) => {
-            const col = d3.color(Plot.scale(scale).apply(Number(d[fill_col]))).rgb();
+            const col = d3.color(scale_fn(d)).rgb();
             return [col["r"], col["g"], col["b"]];
         };
     } else {
