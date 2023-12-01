@@ -1,4 +1,4 @@
-import { Deck, MapView } from "@deck.gl/core";
+import { MapView } from "@deck.gl/core";
 import * as L from "leaflet";
 import * as Plot from "@observablehq/plot";
 
@@ -14,6 +14,7 @@ import * as d3 from "d3";
 import "../node_modules/leaflet/dist/leaflet.css";
 import "../css/lifemap-leaflet.css";
 
+// Create layer from layer definition object
 function create_layer(layer_def, map = undefined, popup = undefined) {
     layer_def.data = d3.filter(layer_def.data, (d) => d["taxid"] != 0);
     switch (layer_def.layer) {
@@ -33,20 +34,25 @@ function create_layer(layer_def, map = undefined, popup = undefined) {
     }
 }
 
-export function lifemap(el, layers, options = {}) {
+// Main function
+export function lifemap(el, layers_list, options = {}) {
     const {
         zoom = 5,
         legend_position = "bottomright",
         legend_width = undefined,
     } = options;
+
+    // Base Leaflet layer
     let map = layer_lifemap(el, { zoom: zoom });
     let popup = L.popup({ closeOnClick: false });
 
-    let layers_list = Array.isArray(layers) ? layers : [layers];
+    // Convert layer definitions to layers
+    layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
     layers_list = layers_list.map((l) => create_layer(l, map, popup));
-    layers = layers_list.map((l) => l.layer);
+    let layers = layers_list.map((l) => l.layer);
     let scales = layers_list.map((l) => l.scales).flat();
 
+    // Create deck.gl layers
     const deckLayer = new LeafletLayer({
         views: [
             new MapView({
@@ -57,6 +63,7 @@ export function lifemap(el, layers, options = {}) {
     });
     map.addLayer(deckLayer);
 
+    // Create legend from scales
     if (scales.length > 0) {
         // Remove duplicated scales
         const unique_scales = {};
