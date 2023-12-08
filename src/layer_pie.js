@@ -22,18 +22,35 @@ export function layer_pie(data, options = {}) {
     };
     let scale_fn = (key) => Plot.scale(scale).apply(key);
 
-    const markers = data.map((d) => {
-        return pie_marker(d, levels, size, scale_fn, x_col, y_col);
+    const zooms = [
+        { lifemap: [4, 8], min_zoom: 4 },
+        { lifemap: [9, 11], min_zoom: 8 },
+        { lifemap: [12, 14], min_zoom: 11 },
+        { lifemap: [15, 17], min_zoom: 14 },
+        { lifemap: [18, 22], min_zoom: 17 },
+        { lifemap: [23, 26], min_zoom: 22 },
+        { lifemap: [27, 30], min_zoom: 26 },
+        { lifemap: [31, 100], min_zoom: 30 },
+    ];
+
+    let layers = zooms.map((z) => {
+        let zoom_data = data.filter(
+            (d) => (d.zoom >= z.lifemap[0]) & (d.zoom <= z.lifemap[1])
+        );
+        const markers = zoom_data.map((d) => {
+            return pie_marker(d, levels, size, scale_fn, x_col, y_col);
+        });
+
+        let layer = L.layerGroup(markers);
+
+        layer.lifemap_leaflet_layer = true;
+        layer.lifemap_leaflet_id = id + z.lifemap;
+        layer.lifemap_leaflet_scales = [scale];
+        layer.lifemap_min_zoom = z.min_zoom;
+
+        return layer;
     });
-
-    let layer = L.layerGroup(markers);
-
-    layer.lifemap_leaflet_layer = true;
-    layer.lifemap_leaflet_id = id;
-    layer.lifemap_leaflet_scales = [scale];
-    layer.lifemap_zoom_levels = [5, 7];
-
-    return layer;
+    return layers;
 }
 
 function pie_marker(data, levels, size, scale_fn, x_col, y_col) {

@@ -42,7 +42,8 @@ function create_layer(layer_def, map = undefined) {
 function convert_layers(layers_list, map) {
     // Convert layer definitions to layers
     layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
-    return layers_list.map((l) => create_layer(l, map));
+    layers_list = layers_list.map((l) => create_layer(l, map));
+    return layers_list.flat();
 }
 
 // Main function
@@ -119,6 +120,20 @@ export function lifemap(el, layers_list, options = {}) {
         update_scales(layers);
     }
 
+    function filter_leaflet_layers(map) {
+        if (map.leaflet_layers === undefined) return;
+        const zoom = map.getZoom();
+        map.leaflet_layers.forEach((l) => {
+            if (l.lifemap_min_zoom !== undefined) {
+                if (l.lifemap_min_zoom <= zoom) {
+                    map.addLayer(l);
+                } else {
+                    map.removeLayer(l);
+                }
+            }
+        });
+    }
+
     // Update leaflet layers from layers definition list
     function update_leaflet_layers(layers_list) {
         const list = layers_list.filter((d) => LEAFLET_LAYERS.includes(d.layer));
@@ -129,10 +144,14 @@ export function lifemap(el, layers_list, options = {}) {
                 l.remove();
             }
         });
-        let layers = convert_layers(list, map);
-        layers.forEach((l) => l.addTo(map));
-        update_scales(layers);
+        map.leaflet_layers = convert_layers(list, map);
+        filter_leaflet_layers(map);
+        update_scales(map.leaflet_layers);
     }
+
+    map.on("zoomend", () => {
+        filter_leaflet_layers(map);
+    });
 
     map.update = function (layers_list) {
         update_deck_layers(layers_list);
