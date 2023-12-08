@@ -23,32 +23,7 @@ export function layer_pie(data, options = {}) {
     let scale_fn = (key) => Plot.scale(scale).apply(key);
 
     const markers = data.map((d) => {
-        // Extract levels values from data
-        let counts = levels.reduce((obj2, key) => ((obj2[key] = d[key]), obj2), {});
-        // Convert to array of {key: , value: } objects
-        counts = Object.entries(counts).map((d) => ({ key: d[0], value: d[1] }));
-
-        const el = document.createElement("div");
-        let chart = L.divIcon({
-            className: "lifemap-pie-divicon",
-            iconSize: size,
-            html: el,
-        });
-        pie_chart(el, counts, size, scale_fn);
-
-        let marker = new L.Marker([d[y_col], d[x_col]], {
-            icon: chart,
-        });
-        let popup_content = counts
-            .map(
-                (d) =>
-                    `<span style="font-weight: 700; color: ${scale_fn(d.key)}">${
-                        d.key
-                    }:</span> ${d.value}`
-            )
-            .join("<br>");
-        marker.bindPopup(popup_content, { offset: [0, -size / 2] });
-        return marker;
+        return pie_marker(d, levels, size, scale_fn, x_col, y_col);
     });
 
     let layer = L.layerGroup(markers);
@@ -56,8 +31,38 @@ export function layer_pie(data, options = {}) {
     layer.lifemap_leaflet_layer = true;
     layer.lifemap_leaflet_id = id;
     layer.lifemap_leaflet_scales = [scale];
+    layer.lifemap_zoom_levels = [5, 7];
 
     return layer;
+}
+
+function pie_marker(data, levels, size, scale_fn, x_col, y_col) {
+    // Extract levels values from data
+    let counts = levels.reduce((obj2, key) => ((obj2[key] = data[key]), obj2), {});
+    // Convert to array of {key: , value: } objects
+    counts = Object.entries(counts).map((d) => ({ key: d[0], value: d[1] }));
+
+    const el = document.createElement("div");
+    let chart = L.divIcon({
+        className: "lifemap-pie-divicon",
+        iconSize: size,
+        html: el,
+    });
+    pie_chart(el, counts, size, scale_fn);
+
+    let marker = new L.Marker([data[y_col], data[x_col]], {
+        icon: chart,
+    });
+    let popup_content = counts
+        .map(
+            (d) =>
+                `<span style="font-weight: 700; color: ${scale_fn(d.key)}">${
+                    d.key
+                }:</span> ${d.value}`
+        )
+        .join("<br>");
+    marker.bindPopup(popup_content, { offset: [0, -size / 2] });
+    return marker;
 }
 
 function pie_chart(el, counts, size, color_scale) {
