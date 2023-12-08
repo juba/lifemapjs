@@ -5,6 +5,7 @@ import * as Plot from "@observablehq/plot";
 
 export function layer_lines(data, options = {}, map) {
     let {
+        id = undefined,
         x_col0 = "lon0",
         y_col0 = "lat0",
         x_col1 = "lon1",
