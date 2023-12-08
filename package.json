@@ -8,7 +8,7 @@
         "build": "esbuild --format=esm --bundle --loader:.png=dataurl --outdir=dist/ src/lifemap.js",
         "watch": "npm run build -- --watch",
         "serve": "esbuild --format=esm --bundle --loader:.png=dataurl --outdir=example/dist/ src/lifemap.js --watch --servedir=example",
-        "publish": "rsync -Pavz dist/lifemap.js data/nodes.arrow data/edges_ids.arrow ejuris:~/www/lifemap"
+        "publish": "rsync -Pavz dist/lifemap.js dist/lifemap.css data/iucn_endangered.arrow data/iucn_endangered_count.arrow data/iucn_endangered_edges.arrow data/iucn_full.arrow data/iucn_status.arrow ejuris:~/www/lifemap"
     },
     "dependencies": {
         "@deck.gl/aggregation-layers": "^8.9.32",
