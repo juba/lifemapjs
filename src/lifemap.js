@@ -6,6 +6,7 @@ import { layer_scatter } from "./layer_scatter";
 import { layer_grid } from "./layer_grid";
 import { layer_screengrid } from "./layer_screen_grid";
 import { layer_lines } from "./layer_lines";
+import { layer_pie } from "./layer_pie";
 
 import * as L from "leaflet";
 import * as d3 from "d3";
@@ -13,6 +14,8 @@ import * as Plot from "@observablehq/plot";
 
 import "../node_modules/leaflet/dist/leaflet.css";
 import "../css/lifemap-leaflet.css";
+
+const LEAFLET_LAYERS = ["pie"];
 
 // Create layer from layer definition object
 function create_layer(layer_def, map = undefined) {
@@ -28,6 +31,8 @@ function create_layer(layer_def, map = undefined) {
             return layer_grid(layer_def.data, layer_def.options ?? {});
         case "screengrid":
             return layer_screengrid(layer_def.data, layer_def.options ?? {});
+        case "pie":
+            return layer_pie(layer_def.data, layer_def.options ?? {});
         default:
             console.warn(`Invalid layer type: ${layer_def.layer}`);
             return undefined;
@@ -105,15 +110,33 @@ export function lifemap(el, layers_list, options = {}) {
         }
     }
 
-    // Update layers from layers definition list
-    function update_layers(layers_list) {
-        let layers = convert_layers(layers_list, map);
+    // Update deck layers from layers definition list
+    function update_deck_layers(layers_list) {
+        const list = layers_list.filter((d) => !LEAFLET_LAYERS.includes(d.layer));
+        if (list.length == 0) return;
+        let layers = convert_layers(list, map);
         deck_layer.setProps({ layers: layers });
         update_scales(layers);
     }
 
+    // Update leaflet layers from layers definition list
+    function update_leaflet_layers(layers_list) {
+        const list = layers_list.filter((d) => LEAFLET_LAYERS.includes(d.layer));
+        if (list.length == 0) return;
+        // TODO : not optimized
+        map.eachLayer((l) => {
+            if (l.lifemap_leaflet_layer) {
+                l.remove();
+            }
+        });
+        let layers = convert_layers(list, map);
+        layers.forEach((l) => l.addTo(map));
+        update_scales(layers);
+    }
+
     map.update = function (layers_list) {
-        update_layers(layers_list);
+        update_deck_layers(layers_list);
+        update_leaflet_layers(layers_list);
     };
 
     map.update(layers_list);
