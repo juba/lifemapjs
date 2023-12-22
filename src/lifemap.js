@@ -1,4 +1,3 @@
-import { MapView } from "@deck.gl/core";
 import { LeafletLayer } from "deck.gl-leaflet";
 import { layer_lifemap } from "./layer_lifemap";
 import { layer_heatmap } from "./layer_heatmap";
@@ -7,32 +6,34 @@ import { layer_grid } from "./layer_grid";
 import { layer_screengrid } from "./layer_screen_grid";
 import { layer_lines } from "./layer_lines";
 import { layer_pie } from "./layer_pie";
+import { unserialize_data } from "./utils";
 
 import * as L from "leaflet";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-import "../node_modules/leaflet/dist/leaflet.css";
+import "../css/leaflet.css";
 import "../css/lifemap-leaflet.css";
 
 const LEAFLET_LAYERS = ["pie"];
 
 // Create layer from layer definition object
 function create_layer(layer_def, map = undefined) {
-    layer_def.data = d3.filter(layer_def.data, (d) => d["taxid"] != 0);
+    let data = unserialize_data(layer_def.data);
+    data = d3.filter(data, (d) => d["taxid"] != 0);
     switch (layer_def.layer) {
         case "points":
-            return layer_scatter(layer_def.data, layer_def.options ?? {}, map);
+            return layer_scatter(data, layer_def.options ?? {}, map);
         case "lines":
-            return layer_lines(layer_def.data, layer_def.options ?? {}, map);
+            return layer_lines(data, layer_def.options ?? {}, map);
         case "heatmap":
-            return layer_heatmap(layer_def.data, layer_def.options ?? {});
+            return layer_heatmap(data, layer_def.options ?? {});
         case "grid":
-            return layer_grid(layer_def.data, layer_def.options ?? {});
+            return layer_grid(data, layer_def.options ?? {});
         case "screengrid":
-            return layer_screengrid(layer_def.data, layer_def.options ?? {});
+            return layer_screengrid(data, layer_def.options ?? {});
         case "pie":
-            return layer_pie(layer_def.data, layer_def.options ?? {});
+            return layer_pie(data, layer_def.options ?? {});
         default:
             console.warn(`Invalid layer type: ${layer_def.layer}`);
             return undefined;
@@ -120,20 +121,6 @@ export function lifemap(el, layers_list, options = {}) {
         update_scales(layers);
     }
 
-    function filter_leaflet_layers(map) {
-        if (map.leaflet_layers === undefined) return;
-        const zoom = map.getZoom();
-        map.leaflet_layers.forEach((l) => {
-            if (l.lifemap_min_zoom !== undefined) {
-                if (l.lifemap_min_zoom <= zoom) {
-                    map.addLayer(l);
-                } else {
-                    map.removeLayer(l);
-                }
-            }
-        });
-    }
-
     // Update leaflet layers from layers definition list
     function update_leaflet_layers(layers_list) {
         const list = layers_list.filter((d) => LEAFLET_LAYERS.includes(d.layer));
@@ -149,16 +136,29 @@ export function lifemap(el, layers_list, options = {}) {
         update_scales(map.leaflet_layers);
     }
 
+    function filter_leaflet_layers(map) {
+        if (map.leaflet_layers === undefined) return;
+        const zoom = map.getZoom();
+        map.leaflet_layers.forEach((l) => {
+            if (l.lifemap_min_zoom !== undefined) {
+                if (l.lifemap_min_zoom <= zoom) {
+                    map.addLayer(l);
+                } else {
+                    map.removeLayer(l);
+                }
+            }
+        });
+    }
+
     map.on("zoomend", () => {
         filter_leaflet_layers(map);
     });
 
-    map.update = function (layers_list) {
+    map.update_layers = function (layers_list) {
         update_deck_layers(layers_list);
         update_leaflet_layers(layers_list);
     };
 
-    map.update(layers_list);
-
+    map.update_layers(layers_list);
     return map;
 }
