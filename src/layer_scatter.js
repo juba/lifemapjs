@@ -7,8 +7,8 @@ import * as Plot from "@observablehq/plot";
 export function layer_scatter(data, options = {}, map) {
     let {
         id = undefined,
-        x_col = "lon",
-        y_col = "lat",
+        x_col = "pylifemap_x",
+        y_col = "pylifemap_y",
         radius = undefined,
         radius_col = undefined,
         fill_col = undefined,
