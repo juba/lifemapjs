@@ -4,27 +4,27 @@ import { guidGenerator } from "./utils";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_scatter(data, options = {}, map) {
+export function layer_points(data, options = {}, map) {
     let {
-        id = undefined,
+        id = null,
         x_col = "pylifemap_x",
         y_col = "pylifemap_y",
-        radius = undefined,
-        radius_col = undefined,
-        fill_col = undefined,
-        fill_col_cat = undefined,
-        scheme = undefined,
+        radius = null,
+        radius_col = null,
+        fill_col = null,
+        fill_col_cat = null,
+        scheme = null,
         opacity = 0.1,
         popup = false,
     } = options;
     let scales = [];
     let popup_obj = map.popup;
-
+    console.log(data);
     id = `lifemap-leaflet-${id ?? guidGenerator()}`;
 
     // Radius column
     let get_radius, radius_scale;
-    if (radius_col !== undefined) {
+    if (radius_col !== null) {
         const max_value = d3.max(data, (d) => d[radius_col]);
         const min_value = d3.min(data, (d) => d[radius_col]);
         get_radius = (d) => (d[radius_col] - min_value) / max_value;
@@ -36,9 +36,9 @@ export function layer_scatter(data, options = {}, map) {
 
     // Fill color column
     let get_fill, scale, scale_fn;
-    if (fill_col !== undefined) {
+    if (fill_col !== null) {
         // Determine if scale is categorical or lineat
-        if (fill_col_cat === undefined) {
+        if (fill_col_cat === null) {
             fill_col_cat = !(
                 ["number", "bigint"].includes(typeof data[0][fill_col]) &
                 ([...new Set(data.map((d) => d[fill_col]))].length > 10)
@@ -89,7 +89,7 @@ export function layer_scatter(data, options = {}, map) {
             if (object === undefined) return;
             let content = `<p><strong>TaxId:</strong> ${object.taxid}<br>`;
             content +=
-                radius_col !== undefined
+                radius_col !== null
                     ? `<strong>${radius_col}:</strong> ${object[radius_col]}<br>`
                     : "";
             content += fill_col

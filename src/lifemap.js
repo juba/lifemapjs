@@ -1,7 +1,7 @@
 import { LeafletLayer } from "deck.gl-leaflet";
 import { layer_lifemap } from "./layer_lifemap";
 import { layer_heatmap } from "./layer_heatmap";
-import { layer_scatter } from "./layer_scatter";
+import { layer_points } from "./layer_points";
 import { layer_grid } from "./layer_grid";
 import { layer_screengrid } from "./layer_screen_grid";
 import { layer_lines } from "./layer_lines";
@@ -23,7 +23,7 @@ function create_layer(layer_def, map = undefined) {
     data = d3.filter(data, (d) => d["taxid"] != 0);
     switch (layer_def.layer) {
         case "points":
-            return layer_scatter(data, layer_def.options ?? {}, map);
+            return layer_points(data, layer_def.options ?? {}, map);
         case "lines":
             return layer_lines(data, layer_def.options ?? {}, map);
         case "heatmap":
