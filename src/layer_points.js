@@ -4,7 +4,7 @@ import { guidGenerator } from "./utils";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_points(data, options = {}, map) {
+export function layer_points(map, data, options = {}) {
     let {
         id = null,
         x_col = "pylifemap_x",
@@ -17,9 +17,9 @@ export function layer_points(data, options = {}, map) {
         opacity = 0.1,
         popup = false,
     } = options;
+
     let scales = [];
     let popup_obj = map.popup;
-    console.log(data);
     id = `lifemap-leaflet-${id ?? guidGenerator()}`;
 
     // Radius column
@@ -117,9 +117,7 @@ export function layer_points(data, options = {}, map) {
         onClick: popup ? onclick : undefined,
         updateTriggers: {
             getRadius: radius_col,
-            radiusScale: radius_scale,
             getFillColor: get_fill,
-            opacity: opacity,
         },
     });
 

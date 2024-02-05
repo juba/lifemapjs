@@ -1,11 +1,11 @@
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { guidGenerator } from "./utils";
 
-export function layer_heatmap(data, options = {}) {
+export function layer_heatmap(map, data, options = {}) {
     let {
         id = undefined,
-        x_col = "lon",
-        y_col = "lat",
+        x_col = "pylifemap_x",
+        y_col = "pylifemap_y",
         radius = 30,
         intensity = 5,
         threshold = 0.05,

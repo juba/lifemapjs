@@ -2,11 +2,11 @@ import * as L from "leaflet";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_pie(data, options = {}) {
+export function layer_pie(map, data, options = {}) {
     let {
         id = undefined,
-        x_col = "lon",
-        y_col = "lat",
+        x_col = "pylifemap_x",
+        y_col = "pylifemap_y",
         levels,
         scheme = undefined,
         label = undefined,

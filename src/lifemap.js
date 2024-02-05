@@ -18,22 +18,22 @@ import "../css/lifemap-leaflet.css";
 const LEAFLET_LAYERS = ["pie"];
 
 // Create layer from layer definition object
-function create_layer(layer_def, map = undefined) {
-    let data = unserialize_data(layer_def.data);
-    data = d3.filter(data, (d) => d["taxid"] != 0);
+function create_layer(layer_def, map) {
+    // Get data from cache
+    let data = unserialize_data(layer_def["data"]);
     switch (layer_def.layer) {
         case "points":
-            return layer_points(data, layer_def.options ?? {}, map);
+            return layer_points(map, data, layer_def.options ?? {});
         case "lines":
-            return layer_lines(data, layer_def.options ?? {}, map);
+            return layer_lines(map, data, layer_def.options ?? {});
         case "heatmap":
-            return layer_heatmap(data, layer_def.options ?? {});
+            return layer_heatmap(map, data, layer_def.options ?? {});
         case "grid":
-            return layer_grid(data, layer_def.options ?? {});
+            return layer_grid(map, data, layer_def.options ?? {});
         case "screengrid":
-            return layer_screengrid(data, layer_def.options ?? {});
+            return layer_screengrid(map, data, layer_def.options ?? {});
         case "pie":
-            return layer_pie(data, layer_def.options ?? {});
+            return layer_pie(map, data, layer_def.options ?? {});
         default:
             console.warn(`Invalid layer type: ${layer_def.layer}`);
             return undefined;
@@ -48,7 +48,7 @@ function convert_layers(layers_list, map) {
 }
 
 // Main function
-export function lifemap(el, layers_list, options = {}) {
+export function lifemap(el, layers, options = {}) {
     const {
         zoom = 5,
         legend_position = "bottomright",
@@ -63,6 +63,8 @@ export function lifemap(el, layers_list, options = {}) {
     map.legend = L.control({ position: legend_position });
     // Current scales
     map.scales = undefined;
+    // Data
+    map.data = undefined;
 
     // Create deck.gl layer
     const deck_layer = new LeafletLayer({ layers: [] });
@@ -113,8 +115,8 @@ export function lifemap(el, layers_list, options = {}) {
     }
 
     // Update deck layers from layers definition list
-    function update_deck_layers(layers_list) {
-        const list = layers_list.filter((d) => !LEAFLET_LAYERS.includes(d.layer));
+    function update_deck_layers(layers_def) {
+        const list = layers_def.filter((d) => !LEAFLET_LAYERS.includes(d.layer));
         if (list.length == 0) return;
         let layers = convert_layers(list, map);
         deck_layer.setProps({ layers: layers });
@@ -122,8 +124,8 @@ export function lifemap(el, layers_list, options = {}) {
     }
 
     // Update leaflet layers from layers definition list
-    function update_leaflet_layers(layers_list) {
-        const list = layers_list.filter((d) => LEAFLET_LAYERS.includes(d.layer));
+    function update_leaflet_layers(layers_def) {
+        const list = layers_def.filter((d) => LEAFLET_LAYERS.includes(d.layer));
         if (list.length == 0) return;
         // TODO : not optimized
         map.eachLayer((l) => {
@@ -159,6 +161,6 @@ export function lifemap(el, layers_list, options = {}) {
         update_leaflet_layers(layers_list);
     };
 
-    map.update_layers(layers_list);
+    map.update_layers(layers);
     return map;
 }

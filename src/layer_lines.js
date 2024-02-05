@@ -3,13 +3,13 @@ import { guidGenerator } from "./utils";
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
-export function layer_lines(data, options = {}, map) {
+export function layer_lines(map, data, options = {}) {
     let {
         id = undefined,
-        x_col0 = "lon0",
-        y_col0 = "lat0",
-        x_col1 = "lon1",
-        y_col1 = "lat1",
+        x_col0 = "pylifemap_x0",
+        y_col0 = "pylifemap_y0",
+        x_col1 = "pylifemap_x1",
+        y_col1 = "pylifemap_y1",
         width = undefined,
         width_col = undefined,
         color_col = undefined,
@@ -17,6 +17,7 @@ export function layer_lines(data, options = {}, map) {
         opacity = 0.6,
         popup = false,
     } = options;
+
     let scales = [];
     let popup_obj = map.popup;
 
