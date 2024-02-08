@@ -1,5 +1,5 @@
 import { LeafletLayer } from "deck.gl-leaflet";
-import { layer_lifemap } from "./layer_lifemap";
+import { layer_lifemap } from "./layer_leaflet";
 import { layer_heatmap } from "./layer_heatmap";
 import { layer_points } from "./layer_points";
 import { layer_grid } from "./layer_grid";
@@ -9,7 +9,6 @@ import { layer_pie } from "./layer_pie";
 import { unserialize_data } from "./utils";
 
 import * as L from "leaflet";
-import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
 
 import "../css/leaflet.css";
@@ -17,38 +16,8 @@ import "../css/lifemap-leaflet.css";
 
 const LEAFLET_LAYERS = ["pie"];
 
-// Create layer from layer definition object
-function create_layer(layer_def, map) {
-    // Get data from cache
-    let data = unserialize_data(layer_def["data"]);
-    switch (layer_def.layer) {
-        case "points":
-            return layer_points(map, data, layer_def.options ?? {});
-        case "lines":
-            return layer_lines(map, data, layer_def.options ?? {});
-        case "heatmap":
-            return layer_heatmap(map, data, layer_def.options ?? {});
-        case "grid":
-            return layer_grid(map, data, layer_def.options ?? {});
-        case "screengrid":
-            return layer_screengrid(map, data, layer_def.options ?? {});
-        case "pie":
-            return layer_pie(map, data, layer_def.options ?? {});
-        default:
-            console.warn(`Invalid layer type: ${layer_def.layer}`);
-            return undefined;
-    }
-}
-
-function convert_layers(layers_list, map) {
-    // Convert layer definitions to layers
-    layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
-    layers_list = layers_list.map((l) => create_layer(l, map));
-    return layers_list.flat();
-}
-
 // Main function
-export function lifemap(el, layers, options = {}) {
+export function lifemap(el, data, layers, options = {}) {
     const {
         zoom = 5,
         legend_position = "bottomright",
@@ -65,10 +34,43 @@ export function lifemap(el, layers, options = {}) {
     map.scales = undefined;
     // Data
     map.data = undefined;
+    // Layers
+    map.layers = undefined;
 
     // Create deck.gl layer
     const deck_layer = new LeafletLayer({ layers: [] });
     map.addLayer(deck_layer);
+
+    // Create layer from layer definition object
+    function create_layer(layer_def) {
+        // Get data
+        const layer_id = layer_def.options.id;
+        let layer_data = map.data[layer_id];
+        switch (layer_def.layer) {
+            case "points":
+                return layer_points(map, layer_data, layer_def.options ?? {});
+            case "lines":
+                return layer_lines(map, layer_data, layer_def.options ?? {});
+            case "heatmap":
+                return layer_heatmap(map, layer_data, layer_def.options ?? {});
+            case "grid":
+                return layer_grid(map, layer_data, layer_def.options ?? {});
+            case "screengrid":
+                return layer_screengrid(map, layer_data, layer_def.options ?? {});
+            case "pie":
+                return layer_pie(map, layer_data, layer_def.options ?? {});
+            default:
+                console.warn(`Invalid layer type: ${layer_def.layer}`);
+                return undefined;
+        }
+    }
+
+    function convert_layers(layers_list, map) {
+        // Convert layer definitions to layers
+        layers_list = Array.isArray(layers_list) ? layers_list : [layers_list];
+        layers_list = layers_list.map((l) => create_layer(l, map));
+        return layers_list.flat();
+    }
 
     // Create legend from scales
     function update_legend(scales) {
@@ -117,8 +119,7 @@ export function lifemap(el, layers, options = {}) {
     // Update deck layers from layers definition list
     function update_deck_layers(layers_def) {
         const list = layers_def.filter((d) => !LEAFLET_LAYERS.includes(d.layer));
-        if (list.length == 0) return;
-        let layers = convert_layers(list, map);
+        let layers = list.length == 0 ? [] : convert_layers(list, map);
         deck_layer.setProps({ layers: layers });
         update_scales(layers);
     }
@@ -161,6 +162,17 @@ export function lifemap(el, layers, options = {}) {
         update_leaflet_layers(layers_list);
     };
 
+    map.update_data = function (data) {
+        console.log("update data");
+        let deserialized_data = {};
+        for (let k in data) {
+            deserialized_data[k] = unserialize_data(data[k]);
+        }
+        map.data = deserialized_data;
+    };
+
+    map.update_data(data);
     map.update_layers(layers);
+    el.map = map;
     return map;
 }
