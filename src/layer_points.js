@@ -25,10 +25,10 @@ export function layer_points(map, data, options = {}) {
     // Radius column
     let get_radius, radius_scale;
     if (radius_col !== null) {
-        const max_value = d3.max(data, (d) => d[radius_col]);
-        const min_value = d3.min(data, (d) => d[radius_col]);
-        get_radius = (d) => (d[radius_col] - min_value) / max_value;
-        radius_scale = radius ?? 30;
+        const max_value = d3.max(data, (d) => Number(d[radius_col]));
+        const min_value = d3.min(data, (d) => Number(d[radius_col]));
+        get_radius = (d) => (Number(d[radius_col]) - min_value) / (max_value - min_value);
+        radius_scale = radius ?? 4;
     } else {
         get_radius = 1;
         radius_scale = radius ?? 4;
@@ -116,7 +116,7 @@ export function layer_points(map, data, options = {}) {
         autoHighlight: false,
         onClick: popup ? onclick : undefined,
         updateTriggers: {
-            getRadius: radius_col,
+            getRadius: get_radius,
             getFillColor: get_fill,
         },
     });
