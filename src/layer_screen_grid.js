@@ -11,9 +11,11 @@ export function layer_screengrid(map, data, options = {}) {
         opacity = 0.5,
     } = options;
 
+    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
+
     const layer = new ScreenGridLayer({
         data: data,
-        id: "screengrid-layer-" + guidGenerator(),
+        id: id,
         pickable: false,
         getPosition: (d) => [d[x_col], d[y_col]],
         getWeight: 1,

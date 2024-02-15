@@ -11,9 +11,11 @@ export function layer_grid(map, data, options = {}) {
         extruded = false,
     } = options;
 
+    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
+
     const layer = new GridLayer({
         data: data,
-        id: "grid-layer-" + guidGenerator(),
+        id: id,
         pickable: false,
         getPosition: (d) => [d[x_col], d[y_col]],
         getWeight: 1,
