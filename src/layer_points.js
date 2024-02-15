@@ -27,7 +27,8 @@ export function layer_points(map, data, options = {}) {
     if (radius_col !== null) {
         const max_value = d3.max(data, (d) => Number(d[radius_col]));
         const min_value = d3.min(data, (d) => Number(d[radius_col]));
-        get_radius = (d) => (Number(d[radius_col]) - min_value) / (max_value - min_value);
+        get_radius = (d) =>
+            ((Number(d[radius_col]) - min_value) / (max_value - min_value)) * 2;
         radius_scale = radius ?? 4;
     } else {
         get_radius = 1;
