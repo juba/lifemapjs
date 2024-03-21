@@ -21,7 +21,7 @@ export function layer_lines(map, data, options = {}) {
     let scales = [];
     let popup_obj = map.popup;
 
-    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
+    id = `lifemap-ol-${id ?? guidGenerator()}`;
 
     // Width column
     let get_width, width_scale;
@@ -47,7 +47,7 @@ export function layer_lines(map, data, options = {}) {
                 scheme: scheme,
                 domain: [min_value, max_value],
             },
-            className: "lifemap-leaflet-lin-legend",
+            className: "lifemap-ol-lin-legend",
             label: color_col,
         };
         scales.push(scale);
@@ -94,7 +94,7 @@ export function layer_lines(map, data, options = {}) {
         autoHighlight: false,
     });
 
-    layer.lifemap_leaflet_id = id;
-    layer.lifemap_leaflet_scales = scales;
+    layer.lifemap_ol_id = id;
+    layer.lifemap_ol_scales = scales;
     return layer;
 }

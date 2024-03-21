@@ -10,14 +10,13 @@
         "serve": "esbuild --format=esm --bundle --loader:.png=dataurl --outdir=example/dist/ src/lifemap.js --watch --servedir=example"
     },
     "dependencies": {
+        "@apache-arrow/es2015-esm": "^15.0.0",
         "@deck.gl/aggregation-layers": "^8.9.33",
         "@deck.gl/extensions": "^8.9.33",
         "@deck.gl/layers": "^8.9.33",
         "@observablehq/plot": "^0.6.12",
-        "@apache-arrow/es2015-esm": "^15.0.0",
         "d3": "^7.8.5",
-        "deck.gl-leaflet": "^1.2.1",
-        "leaflet": "^1.9.4"
+        "ol": "^9.0.0"
     },
     "devDependencies": {
         "esbuild": "^0.17.19"

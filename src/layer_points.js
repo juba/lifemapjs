@@ -20,7 +20,7 @@ export function layer_points(map, data, options = {}) {
 
     let scales = [];
     let popup_obj = map.popup;
-    id = `lifemap-leaflet-${id ?? guidGenerator()}`;
+    id = `lifemap-ol-${id ?? guidGenerator()}`;
 
     // Radius column
     let get_radius, radius_scale;
@@ -56,7 +56,7 @@ export function layer_points(map, data, options = {}) {
                     scheme: scheme,
                     domain: [min_value, max_value],
                 },
-                className: "lifemap-leaflet-lin-legend",
+                className: "lifemap-ol-lin-legend",
                 label: fill_col,
             };
             scale_fn = (d) => Plot.scale(scale).apply(Number(d[fill_col]));
@@ -68,7 +68,7 @@ export function layer_points(map, data, options = {}) {
             scale = {
                 color: { type: "categorical", scheme: scheme, domain: domain },
                 columns: 1,
-                className: "lifemap-leaflet-cat-legend",
+                className: "lifemap-ol-cat-legend",
                 label: fill_col,
             };
             scale_fn = (d) => Plot.scale(scale).apply(d[fill_col]);
@@ -81,7 +81,12 @@ export function layer_points(map, data, options = {}) {
     }
     // Else : constant color
     else {
-        get_fill = [200, 0, 0];
+        if (!scheme) {
+            get_fill = [200, 0, 0];
+        } else {
+            const col = d3.color(scheme).rgb();
+            get_fill = [col["r"], col["g"], col["b"]];
+        }
     }
 
     // Popup
@@ -122,7 +127,7 @@ export function layer_points(map, data, options = {}) {
         },
     });
 
-    layer.lifemap_leaflet_id = id;
-    layer.lifemap_leaflet_scales = scales;
+    layer.lifemap_ol_id = id;
+    layer.lifemap_ol_scales = scales;
     return layer;
 }

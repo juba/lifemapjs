@@ -17,7 +17,7 @@ export function layer_pie(map, data, options = {}) {
     let scale = {
         color: { type: "categorical", scheme: scheme, domain: levels },
         columns: 1,
-        className: "lifemap-leaflet-cat-legend",
+        className: "lifemap-ol-cat-legend",
         label: label,
     };
     let scale_fn = (key) => Plot.scale(scale).apply(key);
@@ -43,9 +43,9 @@ export function layer_pie(map, data, options = {}) {
 
         let layer = L.layerGroup(markers);
 
-        layer.lifemap_leaflet_layer = true;
-        layer.lifemap_leaflet_id = id + z.lifemap;
-        layer.lifemap_leaflet_scales = [scale];
+        layer.lifemap_ol_layer = true;
+        layer.lifemap_ol_id = id + z.lifemap;
+        layer.lifemap_ol_scales = [scale];
         layer.lifemap_min_zoom = z.min_zoom;
 
         return layer;
