@@ -4,11 +4,17 @@ import { Tile as TileLayer } from "ol/layer";
 import View from "ol/View";
 import XYZ from "ol/source/XYZ";
 import Overlay from "ol/Overlay.js";
-
 import { DragPan, MouseWheelZoom, defaults } from "ol/interaction.js";
-import Kinetic from "ol/Kinetic.js";
+import { getBottomLeft, getTopRight } from "ol/extent.js";
+import { fromLonLat, toLonLat } from "ol/proj";
+import Feature from "ol/Feature.js";
+import Point from "ol/geom/Point.js";
+import { Vector } from "ol/source.js";
+import VectorLayer from "ol/layer/Vector.js";
+import { Style, Circle, Fill, Stroke } from "ol/style.js";
+import Text from "ol/style/Text.js";
 
-import { fromLonLat } from "ol/proj";
+import fetchJsonp from "fetch-jsonp";
 
 function create_popup() {
     const container = document.createElement("div");
@@ -56,25 +62,119 @@ export function layer_ol(el, deck_layer, options) {
     });
     const tile_layer = new TileLayer({
         source: new XYZ({
-            url: "https://lifemap.univ-lyon1.fr/osm_tiles/{z}/{x}/{y}.png",
+            url: "https://lifemap.univ-lyon1.fr/nolabels/{z}/{x}/{y}.png",
         }),
     });
+
+    const API_URL = "https://lifemap.univ-lyon1.fr/solr";
+    const TEXT_COLOR = "rgba(255, 255, 255, 1)";
+    const TEXT_STROKE_COLOR = "rgba(0, 0, 0, 1)";
+
+    const label_style_function = (feature) => {
+        const label_style = new Style({
+            // image: new Circle({
+            //     radius: 4,
+            //     fill: new Fill({ color: "rgba(255, 255, 255, 1)" }),
+            //     stroke: new Stroke({
+            //         width: 1,
+            //         color: "rgba(0, 0, 0, 1)",
+            //     }),
+            //     declutterMode: "none",
+            //     zIndex: 0,
+            // }),
+            text: createTaxonNameText(
+                feature.get("sci_name"),
+                feature.get("label_font_size"),
+                feature.get("common_name")
+            ),
+        });
+
+        return label_style;
+    };
+
+    const labels_source = new Vector();
+    const labels_layer = new VectorLayer({
+        source: labels_source,
+        style: label_style_function,
+        declutter: true,
+    });
+
+    function createTaxonNameText(taxonName, taxonNameLabelFontSize, taxonCommonName) {
+        const taxonNameLabelFont = `${taxonNameLabelFontSize}px sans-serif`;
+        const taxonCommonNameLabelFontSize = taxonNameLabelFontSize - 8;
+        const taxonCommonNameLabelFont = `${taxonCommonNameLabelFontSize}px sans-serif`;
+        const nameText = [taxonName, taxonNameLabelFont];
+        const commonNameText =
+            taxonCommonName && taxonCommonNameLabelFontSize > 10
+                ? ["\n", taxonNameLabelFont, taxonCommonName, taxonCommonNameLabelFont]
+                : [];
+        const text = [...nameText, ...commonNameText];
+        const offsetY =
+            (taxonCommonName ? 15 : 5) + Math.floor(taxonNameLabelFontSize / 2);
+
+        const text_style = new Text({
+            fill: new Fill({ color: TEXT_COLOR }),
+            stroke: new Stroke({ width: 2, color: TEXT_STROKE_COLOR }),
+            text: text,
+            offsetY: offsetY,
+            zIndex: 5,
+        });
+
+        return text_style;
+    }
+
+    function to_taxon(doc, zoom) {
+        let taxon = {};
+        taxon["sci_name"] = doc["sci_name"][0];
+        taxon["common_name"] = doc["common_name"] ? doc["common_name"][0] : undefined;
+        taxon["geometry"] = new Point(fromLonLat([doc["lon"], doc["lat"]]));
+        taxon["zoom"] = doc["zoom"][0];
+        taxon["label_font_size"] = 16 + (zoom - doc["zoom"][0]) * 3;
+        return new Feature(taxon);
+    }
+
+    function listForExtent(zoom, extent) {
+        zoom = Math.round(zoom);
+        const url = `${API_URL}/taxo/select?q=*:*&fq=zoom:[0 TO ${zoom}]&fq=lat:[${extent[1]} TO ${extent[3]}]&fq=lon:[${extent[0]} TO ${extent[2]}]&wt=json&rows=1000`;
+        const listTaxa = () =>
+            fetchJsonp(url, { jsonpCallback: "json.wrf" })
+                .then((response) => response.json())
+                .then((response) => response.response.docs.map((d) => to_taxon(d, zoom)))
+                .catch(function (ex) {
+                    console.log("parsing failed", ex);
+                });
+
+        return listTaxa();
+    }
+
+    async function onMoveEnd(ev) {
+        const map = ev.map;
+        let extent = map.getView().calculateExtent();
+        extent = [...toLonLat(getBottomLeft(extent)), ...toLonLat(getTopRight(extent))];
+        const zoom = map.getView().getZoom();
+        let labels = await listForExtent(zoom + 3, extent);
+        labels_source.clear();
+        labels_source.addFeatures(labels);
+        map.render();
+    }
+
     let map = new Map({
         interactions: defaults({ dragPan: false, mouseWheelZoom: false }).extend([
             new DragPan({ duration: 0 }),
             new MouseWheelZoom({
                 onFocusOnly: false,
                 constrainResolution: true,
-                duration: 0,
-                timeout: 10,
+                duration: 200,
+                timeout: 200,
             }),
         ]),
         overlays: [popup_overlay],
-        renderer: "webgl",
         target: el,
         view,
-        layers: [tile_layer, deck_layer],
+        layers: [tile_layer, deck_layer, labels_layer],
     });
+
+    map.on("moveend", onMoveEnd);
 
     map.popup = popup;
     map.popup_overlay = popup_overlay;
