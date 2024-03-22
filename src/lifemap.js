@@ -15,7 +15,7 @@ import { Control, defaults as defaultControls } from "ol/control.js";
 
 import * as Plot from "@observablehq/plot";
 
-const OL_LAYERS = ["pie"];
+const OL_LAYERS = ["pie", "points_ol"];
 
 class LegendControl extends Control {
     constructor(opt_options) {
@@ -37,7 +37,7 @@ export function lifemap(el, data, layers, options = {}) {
 
     // Create deck.gl layer
     const deck = new Deck({
-        initialViewState: { longitude: -4.226497, latitude: 0, zoom: 5 },
+        initialViewState: { longitude: 0, latitude: -4.226497, zoom: 5 },
         controller: false,
         parent: el,
         style: { pointerEvents: "none", "z-index": 1 },
@@ -58,9 +58,7 @@ export function lifemap(el, data, layers, options = {}) {
 
     // Base map object
     let map = layer_ol(el, deck_layer, { zoom: zoom });
-    // Popup object
-    //map.popup = L.popup({ closeOnClick: false });
-    map.popup = undefined;
+
     // Legend control
     map.legend = new LegendControl();
     // Current scales
@@ -76,6 +74,8 @@ export function lifemap(el, data, layers, options = {}) {
         const layer_id = layer_def.options.id;
         let layer_data = map.data[layer_id];
         switch (layer_def.layer) {
+            case "points_ol":
+                return layer_points_ol(map, layer_data, layer_def.options ?? {});
             case "points":
                 return layer_points(map, layer_data, layer_def.options ?? {});
             case "lines":
@@ -119,7 +119,6 @@ export function lifemap(el, data, layers, options = {}) {
         }
         map.legend.element.appendChild(div_legend);
         map.addControl(map.legend);
-        console.log("legend updated");
     }
 
     // Update scales from layers
@@ -128,7 +127,7 @@ export function lifemap(el, data, layers, options = {}) {
             .filter((d) => d.lifemap_ol_scales)
             .map((d) => d.lifemap_ol_scales)
             .flat();
-        console.log(scales);
+
         // Remove duplicated scales
         let unique_scales = {};
         scales.forEach((obj) => {

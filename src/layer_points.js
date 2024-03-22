@@ -1,5 +1,6 @@
 import { ScatterplotLayer } from "@deck.gl/layers";
 import { guidGenerator } from "./utils";
+import { fromLonLat } from "ol/proj.js";
 
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
@@ -102,8 +103,12 @@ export function layer_points(map, data, options = {}) {
                 ? `<strong>${fill_col}:</strong> ${object[fill_col]}<br>`
                 : "";
             content += "</p>";
-            popup_obj = popup_obj.setLatLng([object.lat, object.lon]).setContent(content);
-            map.openPopup(popup_obj);
+            map.popup.content.innerHTML = content;
+            console.log(map.popup);
+            console.log(object);
+            map.popup_overlay.setPosition(
+                fromLonLat([object.pylifemap_x, object.pylifemap_y])
+            );
         };
     }
 

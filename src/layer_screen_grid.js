@@ -7,8 +7,8 @@ export function layer_screengrid(map, data, options = {}) {
         x_col = "pylifemap_x",
         y_col = "pylifemap_y",
         cell_size = 30,
-        extruded = false,
         opacity = 0.5,
+        extruded = false,
     } = options;
 
     id = `lifemap-ol-${id ?? guidGenerator()}`;
