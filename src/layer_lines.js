@@ -5,15 +5,15 @@ import * as Plot from "@observablehq/plot";
 
 export function layer_lines(map, data, options = {}) {
     let {
-        id = undefined,
+        id = null,
         x_col0 = "pylifemap_x0",
         y_col0 = "pylifemap_y0",
         x_col1 = "pylifemap_x1",
         y_col1 = "pylifemap_y1",
-        width = undefined,
-        width_col = undefined,
-        color_col = undefined,
-        scheme = undefined,
+        width = null,
+        width_col = null,
+        color_col = null,
+        scheme = null,
         opacity = 0.6,
         popup = false,
     } = options;
@@ -25,7 +25,7 @@ export function layer_lines(map, data, options = {}) {
 
     // Width column
     let get_width, width_scale;
-    if (width_col !== undefined) {
+    if (width_col !== null) {
         const max_value = d3.max(data, (d) => Number(d[width_col]));
         const min_value = d3.min(data, (d) => Number(d[width_col]));
         get_width = (d) => (Number(d[width_col]) - min_value) / max_value;
@@ -35,9 +35,10 @@ export function layer_lines(map, data, options = {}) {
         width_scale = width ?? 4;
     }
 
+    console.log(color_col);
     // Color column
     let get_color;
-    if (color_col !== undefined) {
+    if (color_col !== null) {
         const max_value = d3.max(data, (d) => Number(d[color_col]));
         const min_value = d3.min(data, (d) => Number(d[color_col]));
         scheme = scheme ?? "Viridis";
@@ -66,12 +67,13 @@ export function layer_lines(map, data, options = {}) {
             if (object === undefined) return;
             let content = `<p><strong>TaxId:</strong> ${object.taxid}<br>`;
             content +=
-                width_col !== undefined
+                width_col !== null
                     ? `<strong>${width_col}:</strong> ${object[width_col]}<br>`
                     : "";
-            content += fill_col
-                ? `<strong>${color_col}:</strong> ${object[color_col]}<br>`
-                : "";
+            content +=
+                fill_col !== null
+                    ? `<strong>${color_col}:</strong> ${object[color_col]}<br>`
+                    : "";
             content += "</p>";
             popup_obj = popup_obj.setLatLng([object.lat, object.lon]).setContent(content);
             map.openPopup(popup_obj);
