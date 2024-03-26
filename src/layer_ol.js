@@ -1,6 +1,7 @@
 // OL
 import Map from "ol/Map";
 import { Tile as TileLayer } from "ol/layer";
+import { WebGLTile } from "ol/layer";
 import View from "ol/View";
 import XYZ from "ol/source/XYZ";
 import Overlay from "ol/Overlay.js";
@@ -97,27 +98,26 @@ export function layer_ol(el, deck_layer, options) {
         source: labels_source,
         style: label_style_function,
         declutter: true,
+        zIndex: 5,
     });
 
     function createTaxonNameText(taxonName, taxonNameLabelFontSize, taxonCommonName) {
-        const taxonNameLabelFont = `${taxonNameLabelFontSize}px sans-serif`;
+        const taxonNameLabelFont = `${taxonNameLabelFontSize}px Segoe UI, Helvetica, sans-serif`;
         const taxonCommonNameLabelFontSize = taxonNameLabelFontSize - 8;
-        const taxonCommonNameLabelFont = `${taxonCommonNameLabelFontSize}px sans-serif`;
+        const taxonCommonNameLabelFont = `${taxonCommonNameLabelFontSize}px Segoe UI, Helvetica, sans-serif`;
         const nameText = [taxonName, taxonNameLabelFont];
         const commonNameText =
             taxonCommonName && taxonCommonNameLabelFontSize > 10
                 ? ["\n", taxonNameLabelFont, taxonCommonName, taxonCommonNameLabelFont]
                 : [];
         const text = [...nameText, ...commonNameText];
-        const offsetY =
-            (taxonCommonName ? 15 : 5) + Math.floor(taxonNameLabelFontSize / 2);
 
         const text_style = new Text({
             fill: new Fill({ color: TEXT_COLOR }),
             stroke: new Stroke({ width: 2, color: TEXT_STROKE_COLOR }),
             text: text,
-            offsetY: offsetY,
-            zIndex: 5,
+            offsetY: 10,
+            textBaseline: "top",
         });
 
         return text_style;
@@ -141,7 +141,7 @@ export function layer_ol(el, deck_layer, options) {
                 .then((response) => response.json())
                 .then((response) => response.response.docs.map((d) => to_taxon(d, zoom)))
                 .catch(function (ex) {
-                    console.log("parsing failed", ex);
+                    console.warn("parsing failed", ex);
                 });
 
         return listTaxa();
@@ -159,13 +159,18 @@ export function layer_ol(el, deck_layer, options) {
     }
 
     let map = new Map({
-        interactions: defaults({ dragPan: false, mouseWheelZoom: false }).extend([
-            new DragPan({ duration: 0 }),
+        interactions: defaults({
+            dragZoom: false,
+            dragPan: false,
+            mouseWheelZoom: false,
+        }).extend([
+            new DragPan({ duration: 0, kinetic: false }),
             new MouseWheelZoom({
                 onFocusOnly: false,
                 constrainResolution: true,
+                maxDelta: 1,
                 duration: 200,
-                timeout: 200,
+                timeout: 100,
             }),
         ]),
         overlays: [popup_overlay],
