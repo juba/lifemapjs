@@ -40,12 +40,10 @@ export function layer_points_ol(map, data, options = {}) {
     const source = new Vector({
         features: features,
     });
-    console.log(source);
+
     const style = {
         "circle-radius": radius,
         "circle-fill-color": "#FF0000",
-        "circle-rotate-with-view": false,
-        "circle-displacement": [0, 0],
         "circle-opacity": opacity,
     };
 
@@ -53,6 +51,7 @@ export function layer_points_ol(map, data, options = {}) {
     const layer = new WebGLPointsLayer({
         source: source,
         style: style,
+        disableHitDetection: true,
     });
 
     layer.lifemap_ol_id = id;
