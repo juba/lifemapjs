@@ -35,7 +35,6 @@ export function layer_lines(map, data, options = {}) {
         width_scale = width ?? 4;
     }
 
-    console.log(color_col);
     // Color column
     let get_color;
     if (color_col !== null) {
@@ -86,7 +85,7 @@ export function layer_lines(map, data, options = {}) {
         data: data,
         widthUnits: "pixels",
         widthScale: width_scale,
-        widthMinPixels: 1,
+        widthMinPixels: 3,
         getSourcePosition: (d) => [d[x_col0], d[y_col0], 0],
         getTargetPosition: (d) => [d[x_col1], d[y_col1], 0],
         getWidth: get_width,
