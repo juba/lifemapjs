@@ -1,6 +1,7 @@
 import { ScatterplotLayer } from "@deck.gl/layers";
 import { guidGenerator } from "./utils";
 import { fromLonLat } from "ol/proj.js";
+import { CollisionFilterExtension } from "@deck.gl/extensions";
 
 import * as d3 from "d3";
 import * as Plot from "@observablehq/plot";
@@ -104,8 +105,6 @@ export function layer_points(map, data, options = {}) {
                 : "";
             content += "</p>";
             map.popup.content.innerHTML = content;
-            console.log(map.popup);
-            console.log(object);
             map.popup_overlay.setPosition(
                 fromLonLat([object.pylifemap_x, object.pylifemap_y])
             );
@@ -116,6 +115,8 @@ export function layer_points(map, data, options = {}) {
     const layer = new ScatterplotLayer({
         id: id,
         data: data,
+        extensions: [new CollisionFilterExtension()],
+        collisionGroup: "points",
         radiusUnits: "pixels",
         radiusScale: radius_scale,
         radiusMinPixels: 2,
@@ -126,6 +127,7 @@ export function layer_points(map, data, options = {}) {
         pickable: popup,
         autoHighlight: false,
         onClick: popup ? onclick : undefined,
+        declutter: true,
         updateTriggers: {
             getRadius: get_radius,
             getFillColor: get_fill,
